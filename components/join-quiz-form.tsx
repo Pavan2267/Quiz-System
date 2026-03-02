@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,25 +9,37 @@ import { Card } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { AlertCircle, CheckCircle } from "lucide-react"
-import {
-  validateQuizCode,
-  getQuizByCode,
-  saveJoinSession,
-  initializeSampleQuizzes,
-} from "@/lib/join-quiz-store"
+import { getQuiz } from "@/lib/quiz-store"
+import { saveJoinSession } from "@/lib/join-quiz-store"
 
 export function JoinQuizForm() {
   const router = useRouter()
-  const [quizCode, setQuizCode] = useState("")
+  const [quizLink, setQuizLink] = useState("")
   const [userName, setUserName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  // Initialize sample quizzes on mount
-  useEffect(() => {
-    initializeSampleQuizzes()
-  }, [])
+  // Extract quiz ID from a link
+  const extractQuizIdFromLink = (link: string): string | null => {
+    try {
+      // Handle full URLs like https://example.com/quiz/quiz_abc123
+      const urlPattern = /\/quiz\/([a-z0-9_]+)/i
+      const match = link.match(urlPattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+
+      // Handle just the quiz ID
+      if (/^[a-z0-9_]+$/i.test(link.trim())) {
+        return link.trim()
+      }
+
+      return null
+    } catch {
+      return null
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,52 +47,53 @@ export function JoinQuizForm() {
     setSuccess(false)
 
     // Validation
-    if (!quizCode.trim()) {
-      setError("Quiz code is required")
+    if (!quizLink.trim()) {
+      setError("Please paste the quiz link or ID")
       return
     }
     if (!userName.trim()) {
-      setError("User name is required")
+      setError("Your name is required")
       return
     }
 
     if (userName.trim().length < 2) {
-      setError("User name must be at least 2 characters")
+      setError("Name must be at least 2 characters")
       return
     }
 
     setIsLoading(true)
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Validate quiz code
-    if (!validateQuizCode(quizCode)) {
+    // Extract quiz ID from link
+    const quizId = extractQuizIdFromLink(quizLink)
+    if (!quizId) {
       setIsLoading(false)
-      setError("Invalid Quiz Code")
+      setError("Invalid quiz link format. Please check and try again.")
       return
     }
 
-    // Get quiz details
-    const quiz = getQuizByCode(quizCode)
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // Check if quiz exists
+    const quiz = getQuiz(quizId)
     if (!quiz) {
       setIsLoading(false)
-      setError("Invalid Quiz Code")
+      setError("Quiz not found. Please check the link and try again.")
       return
     }
 
     // Save session and redirect
     saveJoinSession({
-      quizCode: quizCode.toUpperCase(),
+      quizCode: quizId,
       userName: userName.trim(),
-      quizId: quiz.id,
+      quizId: quizId,
     })
 
     setSuccess(true)
 
     // Redirect to quiz page after brief delay
     setTimeout(() => {
-      router.push(`/quiz/${quiz.id}`)
+      router.push(`/quiz/${quizId}`)
     }, 500)
   }
 
@@ -92,22 +105,25 @@ export function JoinQuizForm() {
             Join a Quiz
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Enter the quiz code and your name to get started.
+            Paste the quiz link shared by your instructor to get started.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Quiz Code Input */}
+          {/* Quiz Link Input */}
           <div className="space-y-2">
-            <Label htmlFor="quiz-code">Quiz Code</Label>
+            <Label htmlFor="quiz-link">Quiz Link</Label>
             <Input
-              id="quiz-code"
-              placeholder="e.g., QUIZ001"
-              value={quizCode}
-              onChange={(e) => setQuizCode(e.target.value.toUpperCase())}
+              id="quiz-link"
+              placeholder="Paste quiz link here"
+              value={quizLink}
+              onChange={(e) => setQuizLink(e.target.value)}
               disabled={isLoading || success}
-              className="placeholder:text-muted-foreground"
+              className="placeholder:text-muted-foreground font-mono text-sm"
             />
+            <p className="text-xs text-muted-foreground">
+              Paste the full link from your instructor (e.g., localhost:3000/quiz/quiz_abc123...)
+            </p>
           </div>
 
           {/* User Name Input */}
@@ -121,6 +137,9 @@ export function JoinQuizForm() {
               disabled={isLoading || success}
               className="placeholder:text-muted-foreground"
             />
+            <p className="text-xs text-muted-foreground">
+              This will be recorded with your quiz submission
+            </p>
           </div>
 
           {/* Error Alert */}
@@ -136,7 +155,7 @@ export function JoinQuizForm() {
             <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               <AlertDescription className="text-green-800 dark:text-green-200">
-                Quiz code validated! Redirecting...
+                Welcome, {userName}! Loading quiz...
               </AlertDescription>
             </Alert>
           )}
@@ -158,21 +177,30 @@ export function JoinQuizForm() {
                 <span>Joined Successfully!</span>
               </div>
             ) : (
-              "Join Now"
+              "Join Quiz"
             )}
           </Button>
         </form>
 
-        {/* Demo Info */}
-        <div className="mt-8 space-y-2 rounded-lg bg-muted p-4">
+        {/* How it Works Section */}
+        <div className="mt-8 space-y-3 rounded-lg bg-muted p-4">
           <p className="text-xs font-semibold text-muted-foreground">
-            Demo Quiz Codes:
+            How to get a quiz link:
           </p>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <p>• QUIZ001 - General Knowledge</p>
-            <p>• QUIZ002 - Mathematics</p>
-            <p>• DEMO1234 - Sample Quiz</p>
-          </div>
+          <ol className="space-y-2 text-xs text-muted-foreground">
+            <li className="flex gap-2">
+              <span className="font-semibold text-foreground">1.</span>
+              <span>Your instructor creates a quiz</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-semibold text-foreground">2.</span>
+              <span>They copy the shareable link</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-semibold text-foreground">3.</span>
+              <span>You paste it here to join</span>
+            </li>
+          </ol>
         </div>
       </Card>
     </div>

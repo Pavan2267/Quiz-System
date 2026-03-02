@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Join Quiz - QuizGuard",
-  description: "Join a quiz by entering the quiz code and your name.",
+  description: "Join a quiz by pasting the shareable link from your instructor.",
 }
 
 export default function JoinPage() {

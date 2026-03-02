@@ -106,6 +106,11 @@ export function getAttemptsByQuiz(quizId: string): QuizAttempt[] {
 }
 
 export function getShareableLink(quizId: string): string {
-  if (typeof window === "undefined") return ""
-  return `${window.location.origin}/quiz/${quizId}`
+  // Use NEXT_PUBLIC_SITE_URL for production, fallback to window.location in development
+  const baseUrl = 
+    (typeof window !== "undefined" && process.env.NEXT_PUBLIC_SITE_URL) ||
+    (typeof window !== "undefined" && window.location.origin) ||
+    "http://localhost:3000"
+  
+  return `${baseUrl}/quiz/${quizId}`
 }

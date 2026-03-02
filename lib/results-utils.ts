@@ -60,7 +60,7 @@ export function exportToExcel(
           Score: attempt.score,
           "Total Marks": totalMarks,
           Percentage: percentage + "%",
-          Status,
+          Status: status,
           "Time Taken": attempt.timeTaken,
           "Submitted At": submitDate,
         }

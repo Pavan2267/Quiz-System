@@ -236,7 +236,7 @@ export default function ResultsPage({ params }: Props) {
                       <span className="text-sm text-green-600 font-semibold">{stats.passingAttempts} students ({stats.passingPercentage}%)</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">Failed (< 50%):</span>
+                      <span className="text-sm font-medium text-foreground">Failed (&lt;50%):</span>
                       <span className="text-sm text-red-600 font-semibold">{stats.totalAttempts - stats.passingAttempts} students ({100 - stats.passingPercentage}%)</span>
                     </div>
                   </div>

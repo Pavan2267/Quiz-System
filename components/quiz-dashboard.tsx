@@ -17,9 +17,10 @@ import {
   TextCursorInput,
   BarChart3,
   Star,
+  Users,
 } from "lucide-react"
 import type { Quiz } from "@/lib/quiz-types"
-import { getAllQuizzes, deleteQuiz, getShareableLink } from "@/lib/quiz-store"
+import { getAllQuizzes, deleteQuiz, getShareableLink, getAttemptsByQuiz } from "@/lib/quiz-store"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -36,9 +37,18 @@ import {
 export function QuizDashboard() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
-    setQuizzes(getAllQuizzes())
+    const allQuizzes = getAllQuizzes()
+    setQuizzes(allQuizzes)
+    
+    // Load attempt counts for all quizzes
+    const counts: Record<string, number> = {}
+    allQuizzes.forEach((quiz) => {
+      counts[quiz.id] = getAttemptsByQuiz(quiz.id).length
+    })
+    setAttemptCounts(counts)
   }, [])
 
   function handleDelete(id: string) {
@@ -148,9 +158,15 @@ export function QuizDashboard() {
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Created {formatDate(quiz.createdAt)}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Created {formatDate(quiz.createdAt)}
+                </p>
+                <span className="flex items-center gap-1 rounded-full bg-blue-100/50 px-2 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                  <Users className="h-3 w-3" />
+                  {attemptCounts[quiz.id] || 0} attempts
+                </span>
+              </div>
 
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
                 <Button

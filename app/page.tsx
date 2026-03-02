@@ -1,6 +1,6 @@
 import { QuizDashboard } from "@/components/quiz-dashboard"
 import Link from "next/link"
-import { Plus, Shield } from "lucide-react"
+import { Plus, Shield, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Metadata } from "next"
 
@@ -19,12 +19,20 @@ export default function HomePage() {
             <Shield className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">QuizGuard</h1>
           </div>
-          <Link href="/create">
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create Quiz
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/join">
+              <Button variant="outline" className="flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                Join Quiz
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Quiz
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

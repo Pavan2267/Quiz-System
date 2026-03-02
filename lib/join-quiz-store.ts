@@ -1,9 +1,9 @@
 // Dummy quiz codes for validation (in a real app, these would come from a backend)
-const AVAILABLE_QUIZ_CODES: Record<string, { quizId: string; title: string }> = {
-  "QUIZ001": { quizId: "quiz_abc123", title: "General Knowledge" },
-  "QUIZ002": { quizId: "quiz_def456", title: "Mathematics" },
-  "QUIZ003": { quizId: "quiz_ghi789", title: "Science Basics" },
-  "DEMO1234": { quizId: "quiz_demo001", title: "Sample Quiz" },
+const AVAILABLE_QUIZ_CODES: Record<string, { id: string; title: string }> = {
+  "QUIZ001": { id: "quiz_abc123_1", title: "General Knowledge" },
+  "QUIZ002": { id: "quiz_def456_1", title: "Mathematics" },
+  "QUIZ003": { id: "quiz_ghi789_1", title: "Science Basics" },
+  "DEMO1234": { id: "quiz_demo001_1", title: "Sample Quiz" },
 }
 
 export interface JoinQuizData {
@@ -15,7 +15,7 @@ export function validateQuizCode(code: string): boolean {
   return code.toUpperCase() in AVAILABLE_QUIZ_CODES
 }
 
-export function getQuizByCode(code: string): { quizId: string; title: string } | null {
+export function getQuizByCode(code: string): { id: string; title: string } | null {
   const quiz = AVAILABLE_QUIZ_CODES[code.toUpperCase()]
   return quiz || null
 }
@@ -34,6 +34,58 @@ export function getJoinSession(): (JoinQuizData & { quizId: string }) | null {
     return JSON.parse(raw)
   } catch {
     return null
+  }
+}
+
+// Initialize sample quizzes in localStorage (for demo purposes)
+export function initializeSampleQuizzes(): void {
+  if (typeof window === "undefined") return
+  const listRaw = localStorage.getItem("quiz_list")
+  const list: string[] = listRaw ? JSON.parse(listRaw) : []
+  
+  // Only initialize if no quizzes exist
+  if (list.length === 0) {
+    const sampleQuizzes = [
+      {
+        id: "quiz_abc123_1",
+        title: "General Knowledge",
+        description: "Test your general knowledge",
+        createdAt: new Date().toISOString(),
+        settings: {
+          totalTime: 600,
+          perQuestionTime: 30,
+          requirePassword: false,
+          password: "",
+          expiryDate: "2025-12-31",
+          antiCheat: true,
+          maxWarnings: 3,
+        },
+        questions: [],
+      },
+      {
+        id: "quiz_def456_1",
+        title: "Mathematics",
+        description: "Math quiz for all levels",
+        createdAt: new Date().toISOString(),
+        settings: {
+          totalTime: 600,
+          perQuestionTime: 30,
+          requirePassword: false,
+          password: "",
+          expiryDate: "2025-12-31",
+          antiCheat: true,
+          maxWarnings: 3,
+        },
+        questions: [],
+      },
+    ]
+    
+    sampleQuizzes.forEach((quiz) => {
+      localStorage.setItem(`quiz_${quiz.id}`, JSON.stringify(quiz))
+      list.push(quiz.id)
+    })
+    
+    localStorage.setItem("quiz_list", JSON.stringify(list))
   }
 }
 

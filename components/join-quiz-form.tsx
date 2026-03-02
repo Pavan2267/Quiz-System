@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import {
   validateQuizCode,
   getQuizByCode,
   saveJoinSession,
+  initializeSampleQuizzes,
 } from "@/lib/join-quiz-store"
 
 export function JoinQuizForm() {
@@ -22,6 +23,11 @@ export function JoinQuizForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  // Initialize sample quizzes on mount
+  useEffect(() => {
+    initializeSampleQuizzes()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,14 +73,14 @@ export function JoinQuizForm() {
     saveJoinSession({
       quizCode: quizCode.toUpperCase(),
       userName: userName.trim(),
-      quizId: quiz.quizId,
+      quizId: quiz.id,
     })
 
     setSuccess(true)
 
     // Redirect to quiz page after brief delay
     setTimeout(() => {
-      router.push(`/quiz/${quiz.quizId}`)
+      router.push(`/quiz/${quiz.id}`)
     }, 500)
   }
 
